@@ -2,20 +2,19 @@ plugins {
     kotlin("jvm") version "1.6.10"
 }
 
-allprojects {
-    repositories {
-        mavenCentral()
-    }
+val gdxVersion = "1.11.0"
+
+repositories {
+    mavenCentral()
 }
 
-subprojects {
-    apply(plugin = "org.jetbrains.kotlin.jvm")
-
-    dependencies {
-        implementation("org.jetbrains.kotlin:kotlin-reflect")
-        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-        implementation("org.jetbrains.kotlin:kotlin-stdlib")
-    }
+dependencies {
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib")
+    implementation("com.badlogicgames.gdx:gdx:$gdxVersion")
+    implementation("com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion")
+    implementation("com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop")
+    implementation("com.badlogicgames.gdx:gdx-box2d:$gdxVersion")
+    implementation("com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop")
 }
-
-val gdxVersion by extra { "1.11.0" }
