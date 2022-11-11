@@ -2,36 +2,54 @@ package com.funsoftware.game.deliveryguy.leveleditor
 
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
+import com.badlogic.gdx.scenes.scene2d.ui.Stack
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.ScreenViewport
+import com.badlogic.gdx.utils.viewport.StretchViewport
 
 class Client : ApplicationAdapter() {
 
-    private lateinit var stage: Stage
+    private lateinit var uiStage: Stage
+    private lateinit var gameWorldStage: Stage
 
     override fun create() {
-        stage = Stage(ScreenViewport())
-        Gdx.input.inputProcessor = stage
+        uiStage = Stage(ScreenViewport())
         val uiCanvas = UICanvas()
-        stage.addActor(uiCanvas)
+        uiStage.addActor(uiCanvas)
         val skin = Skin(Gdx.files.internal("uiskin.json"))
-        val window = AutoMovableWindow("first window", skin)
+        val window = RespectfulBoundsWindow("first window", skin)
         window.isResizable = true
-        uiCanvas.addWidget(window)
-        uiCanvas.addWidget(AutoMovableWindow("second window", skin))
+        window.setPosition(300f, 300f)
+        uiCanvas.addActor(window)
+        uiCanvas.addActor(RespectfulBoundsWindow("second window", skin))
+
+        val viewport = StretchViewport(20f, 20f)
+        gameWorldStage = Stage(viewport)
+        val stack = Stack()
+        gameWorldStage.addActor(stack)
+        stack.add(GameWorldGrid())
+
+        val inputMultiplexer = InputMultiplexer()
+        inputMultiplexer.addProcessor(uiStage)
+        inputMultiplexer.addProcessor(gameWorldStage)
+        Gdx.input.inputProcessor = inputMultiplexer
     }
 
     override fun render() {
         ScreenUtils.clear(Color.BLACK)
         val deltaTime = Gdx.graphics.deltaTime
-        stage.act(deltaTime)
-        stage.draw()
+        gameWorldStage.act(deltaTime)
+        gameWorldStage.draw()
+        uiStage.act(deltaTime)
+        uiStage.draw()
     }
 
     override fun resize(width: Int, height: Int) {
-        stage.viewport.update(width, height, true)
+        uiStage.viewport.update(width, height, true)
+        gameWorldStage.viewport.update(width, height)
     }
 }
