@@ -15,6 +15,7 @@ class Client : ApplicationAdapter() {
 
     private lateinit var uiStage: Stage
     private lateinit var gameWorldStage: Stage
+    private lateinit var gameWorldGrid: GameWorldGrid
 
     override fun create() {
         uiStage = Stage(ScreenViewport())
@@ -31,7 +32,8 @@ class Client : ApplicationAdapter() {
         gameWorldStage = Stage(viewport)
         val stack = Stack()
         gameWorldStage.addActor(stack)
-        stack.add(GameWorldGrid())
+        gameWorldGrid = GameWorldGrid()
+        stack.add(gameWorldGrid)
 
         val inputMultiplexer = InputMultiplexer()
         inputMultiplexer.addProcessor(uiStage)
@@ -51,5 +53,7 @@ class Client : ApplicationAdapter() {
     override fun resize(width: Int, height: Int) {
         uiStage.viewport.update(width, height, true)
         gameWorldStage.viewport.update(width, height)
+        //todo: change to event and make this method private
+        gameWorldGrid.calculatePixelSizeValues()
     }
 }

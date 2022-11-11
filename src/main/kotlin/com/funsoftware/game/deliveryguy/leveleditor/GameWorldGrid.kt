@@ -28,7 +28,7 @@ class GameWorldGrid : Widget() {
 
     private fun createOnePixelTexture(): Texture {
         val pixmap = Pixmap(1, 1, Pixmap.Format.RGBA8888)
-        pixmap.setColor(Color.GREEN)
+        pixmap.setColor(Color.DARK_GRAY)
         pixmap.fillRectangle(0, 0, 1, 1)
         val texture = Texture(pixmap)
         pixmap.dispose()
@@ -50,6 +50,10 @@ class GameWorldGrid : Widget() {
 
     override fun setStage(stage: Stage?) {
         super.setStage(stage)
+        calculatePixelSizeValues()
+    }
+
+    fun calculatePixelSizeValues() {
         if (stage != null) {
             pixelWidthInGameUnits = stage.viewport.worldWidth / stage.viewport.screenWidth
             pixelHeightInGameUnits = stage.viewport.worldHeight / stage.viewport.screenHeight
