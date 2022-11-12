@@ -9,12 +9,12 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Stack
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.ScreenViewport
-import com.badlogic.gdx.utils.viewport.StretchViewport
 
 class Client : ApplicationAdapter() {
 
     private lateinit var uiStage: Stage
     private lateinit var gameWorldStage: Stage
+    private lateinit var gameWorldStack: Stack
     private lateinit var gameWorldGrid: GameWorldGrid
 
     override fun create() {
@@ -28,12 +28,13 @@ class Client : ApplicationAdapter() {
         uiCanvas.addActor(window)
         uiCanvas.addActor(RespectfulBoundsWindow("second window", skin))
 
-        val viewport = StretchViewport(20f, 20f)
+        val viewport = ScreenViewport()
         gameWorldStage = Stage(viewport)
-        val stack = Stack()
-        gameWorldStage.addActor(stack)
-        gameWorldGrid = GameWorldGrid()
-        stack.add(gameWorldGrid)
+        gameWorldStack = Stack()
+        gameWorldStack.setFillParent(true)
+        gameWorldStage.addActor(gameWorldStack)
+        gameWorldGrid = GameWorldGrid(skin)
+        gameWorldStack.add(gameWorldGrid)
 
         val inputMultiplexer = InputMultiplexer()
         inputMultiplexer.addProcessor(uiStage)
@@ -46,14 +47,12 @@ class Client : ApplicationAdapter() {
         val deltaTime = Gdx.graphics.deltaTime
         gameWorldStage.act(deltaTime)
         gameWorldStage.draw()
-        uiStage.act(deltaTime)
-        uiStage.draw()
+        //uiStage.act(deltaTime)
+        //uiStage.draw()
     }
 
     override fun resize(width: Int, height: Int) {
         uiStage.viewport.update(width, height, true)
-        gameWorldStage.viewport.update(width, height)
-        //todo: change to event and make this method private
-        gameWorldGrid.calculatePixelSizeValues()
+        gameWorldStage.viewport.update(width, height, true)
     }
 }
