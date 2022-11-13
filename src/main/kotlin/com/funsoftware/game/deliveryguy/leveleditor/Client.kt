@@ -6,16 +6,14 @@ import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
-import com.badlogic.gdx.scenes.scene2d.ui.Stack
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 
 class Client : ApplicationAdapter() {
 
     private lateinit var uiStage: Stage
-    private lateinit var gameWorldStage: Stage
-    private lateinit var gameWorldStack: Stack
-    private lateinit var gameWorldGrid: GameWorldGrid
+    private lateinit var gameWorldGridStage: Stage
+    private lateinit var gameWorldCanvasStage: Stage
 
     override fun create() {
         uiStage = Stage(ScreenViewport())
@@ -28,31 +26,40 @@ class Client : ApplicationAdapter() {
         uiCanvas.addActor(window)
         uiCanvas.addActor(RespectfulBoundsWindow("second window", skin))
 
-        val viewport = ScreenViewport()
-        gameWorldStage = Stage(viewport)
-        gameWorldStack = Stack()
-        gameWorldStack.setFillParent(true)
-        gameWorldStage.addActor(gameWorldStack)
-        gameWorldGrid = GameWorldGrid(skin)
-        gameWorldStack.add(gameWorldGrid)
+        var viewport = ScreenViewport()
+        gameWorldGridStage = Stage(viewport)
+        val gameWorldGrid = GameWorldGrid(skin)
+        gameWorldGridStage.scrollFocus = gameWorldGrid
+        gameWorldGridStage.keyboardFocus = gameWorldGrid
+        gameWorldGridStage.addActor(gameWorldGrid)
+
+        viewport = ScreenViewport()
+        gameWorldCanvasStage = Stage(viewport)
+        val gameWorldCanvas = GameWorldCanvas()
+        gameWorldCanvasStage.addActor(gameWorldCanvas)
+        gameWorldCanvas.addActor(TestWidget())
 
         val inputMultiplexer = InputMultiplexer()
         inputMultiplexer.addProcessor(uiStage)
-        inputMultiplexer.addProcessor(gameWorldStage)
+        inputMultiplexer.addProcessor(gameWorldGridStage)
+        inputMultiplexer.addProcessor(gameWorldCanvasStage)
         Gdx.input.inputProcessor = inputMultiplexer
     }
 
     override fun render() {
         ScreenUtils.clear(Color.BLACK)
         val deltaTime = Gdx.graphics.deltaTime
-        gameWorldStage.act(deltaTime)
-        gameWorldStage.draw()
+        gameWorldGridStage.act(deltaTime)
+        gameWorldCanvasStage.act(deltaTime)
+        gameWorldGridStage.draw()
+        gameWorldCanvasStage.draw()
         //uiStage.act(deltaTime)
         //uiStage.draw()
     }
 
     override fun resize(width: Int, height: Int) {
         uiStage.viewport.update(width, height, true)
-        gameWorldStage.viewport.update(width, height, true)
+        gameWorldGridStage.viewport.update(width, height, true)
+        gameWorldCanvasStage.viewport.update(width, height, true)
     }
 }

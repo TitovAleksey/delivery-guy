@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.BitmapFontCache
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.scenes.scene2d.InputEvent
+import com.badlogic.gdx.scenes.scene2d.InputListener
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Widget
@@ -16,28 +17,31 @@ import com.badlogic.gdx.scenes.scene2d.utils.DragListener
 
 class GameWorldGrid(skin: Skin) : Widget() {
 
-    private var firstWorldY = 0
-    private var lastWorldY = 0
-    private var firstWorldX = 0
-    private var lastWorldX = 0
+    private var isFirstLayout = true
+    private var gameUnitsPerCell = 1
+    private var batchUnitsPerGameUnit = 1f
+
+    private var mousePositionBatchX = 0f
+    private var mousePositionBatchY = 0f
+    private var mousePositionGameWorldX = 0f
+    private var mousePositionGameWorldY = 0f
 
     private var gameWorldBottomX = 0f
     private var gameWorldBottomY = 0f
 
-    private var horizontalPaddingWidth = 0f
-    private var verticalPaddingHeight = 0f
-
     private val batchUnitsPerCm = Gdx.graphics.density * 160f / 2.54f
     private val textPaddingSize = batchUnitsPerCm / 4
-    private var gameUnitsPerCell = 1
-    private var batchUnitsPerGameUnit = 1f
+
     private val worldLinesTexture = createOnePixelTexture()
     private val bitmapFontCache: BitmapFontCache
     private val layout: GlyphLayout = GlyphLayout()
+    private var linesList: MutableList<GameWorldGridLine> = mutableListOf()
 
     init {
         setFillParent(true)
         createDragListener()
+        createScrollListener()
+        createMouseListener()
         bitmapFontCache = createBitMapFontCache(skin)
         layout.setText(bitmapFontCache.font, "1")
         bitmapFontCache.font.data.setScale(batchUnitsPerCm / 2.5f / layout.height)
@@ -54,6 +58,61 @@ class GameWorldGrid(skin: Skin) : Widget() {
         dragListener.button = Input.Buttons.RIGHT
         dragListener.tapSquareSize
         addListener(dragListener)
+    }
+
+    private fun createScrollListener() {
+        val scrollListener = object : InputListener() {
+            override fun scrolled(event: InputEvent?, x: Float, y: Float, amountX: Float, amountY: Float): Boolean {
+                if (amountY < 0) zoomInGameWorld()
+                if (amountY > 0) zoomOutGameWorld()
+                return true
+            }
+
+            override fun keyTyped(event: InputEvent?, character: Char): Boolean {
+                var isProcessed = true
+                when (character) {
+                    '+' -> zoomInGameWorld()
+                    '-' -> zoomOutGameWorld()
+                    else -> {
+                        isProcessed = false
+                    }
+                }
+                return isProcessed
+            }
+        }
+        addListener(scrollListener)
+    }
+
+    private fun zoomInGameWorld() {
+        batchUnitsPerGameUnit *= 1.05f
+        makeAlignOffset()
+        invalidate()
+    }
+
+    private fun makeAlignOffset() {
+        val mouseWorldXPositionAfterZoom = gameWorldBottomX + (mousePositionBatchX - x) / batchUnitsPerGameUnit
+        val mouseWorldYPositionAfterZoom = gameWorldBottomY + (mousePositionBatchY - y) / batchUnitsPerGameUnit
+        gameWorldBottomX -= mouseWorldXPositionAfterZoom - mousePositionGameWorldX
+        gameWorldBottomY -= mouseWorldYPositionAfterZoom - mousePositionGameWorldY
+    }
+
+    private fun zoomOutGameWorld() {
+        batchUnitsPerGameUnit *= 0.95f
+        makeAlignOffset()
+        invalidate()
+    }
+
+    private fun createMouseListener() {
+        val mouseListener = object : InputListener() {
+            override fun mouseMoved(event: InputEvent?, x: Float, y: Float): Boolean {
+                mousePositionGameWorldX = gameWorldBottomX + (x - this@GameWorldGrid.x) / batchUnitsPerGameUnit
+                mousePositionGameWorldY = gameWorldBottomY + (y - this@GameWorldGrid.y) / batchUnitsPerGameUnit
+                mousePositionBatchX = x
+                mousePositionBatchY = y
+                return true
+            }
+        }
+        addListener(mouseListener)
     }
 
     private fun createOnePixelTexture(): Texture {
@@ -75,78 +134,84 @@ class GameWorldGrid(skin: Skin) : Widget() {
     }
 
     private fun drawSizeLineWithLabels(batch: Batch) {
-        for (gameWorldLineY in firstWorldY..lastWorldY step gameUnitsPerCell) {
-            drawHorizontalWorldLineWithLabel(gameWorldLineY, batch)
+        linesList.forEach {
+            batch.draw(worldLinesTexture, it.lineX, it.lineY, it.lineWidth, it.lineHeight)
+            layout.setText(bitmapFontCache.font, it.labelText)
+            bitmapFontCache.setText(layout, it.firstLabelX, it.firstLabelY)
+            bitmapFontCache.draw(batch)
+            bitmapFontCache.setText(layout, it.secondLabelX, it.secondLabelY)
+            bitmapFontCache.draw(batch)
         }
-        for (gameWorldLineX in firstWorldX..lastWorldX step gameUnitsPerCell) {
-            drawVerticalWorldLineWithLabel(gameWorldLineX, batch)
-        }
-    }
-
-    private fun drawHorizontalWorldLineWithLabel(gameWorldLineY: Int, batch: Batch) {
-        val yInBatchCoordinates = y + (gameWorldLineY - gameWorldBottomY) * batchUnitsPerGameUnit
-        batch.draw(
-            worldLinesTexture,
-            x + horizontalPaddingWidth,
-            yInBatchCoordinates,
-            width - horizontalPaddingWidth * 2,
-            1f
-        )
-        layout.setText(bitmapFontCache.font, gameWorldLineY.toString())
-        val yInBatchCoordinatesForText = yInBatchCoordinates + layout.height / 2
-        bitmapFontCache.setText(layout, x + horizontalPaddingWidth / 2 - layout.width / 2, yInBatchCoordinatesForText)
-        bitmapFontCache.draw(batch)
-        bitmapFontCache.setText(
-            layout,
-            x + width - horizontalPaddingWidth / 2 - layout.width / 2,
-            yInBatchCoordinatesForText
-        )
-        bitmapFontCache.draw(batch)
-    }
-
-    private fun drawVerticalWorldLineWithLabel(gameWorldLineX: Int, batch: Batch) {
-        val xInBatchCoordinates = x + (gameWorldLineX - gameWorldBottomX) * batchUnitsPerGameUnit
-        batch.draw(
-            worldLinesTexture,
-            xInBatchCoordinates,
-            y + verticalPaddingHeight,
-            1f,
-            height - verticalPaddingHeight * 2
-        )
-        layout.setText(bitmapFontCache.font, gameWorldLineX.toString())
-        val xInBatchCoordinatesForText = xInBatchCoordinates - layout.width / 2
-        bitmapFontCache.setText(layout, xInBatchCoordinatesForText, y + verticalPaddingHeight / 2 + layout.height / 2)
-        bitmapFontCache.draw(batch)
-        bitmapFontCache.setText(
-            layout,
-            xInBatchCoordinatesForText,
-            y + height - verticalPaddingHeight / 2 + layout.height / 2
-        )
-        bitmapFontCache.draw(batch)
     }
 
     override fun layout() {
-        layout.setText(bitmapFontCache.font, "1")
-        if (layout.height > batchUnitsPerGameUnit * gameUnitsPerCell) {
-            batchUnitsPerGameUnit = layout.height / gameUnitsPerCell * 2f
+        var continueWork = true
+        var tryToDecreaseStep = true
+        while (continueWork) {
+            val (firstX, lastX) = calculateGameWorldXValues()
+            val (firstY, lastY) = calculateGameWorldYValues()
+            val (maxYLabelWidth, maxYLabelHeight) = calculateMaxLabelSize(firstY, lastY)
+            val (maxXLabelWidth, maxXLabelHeight) = calculateMaxLabelSize(firstX, lastX)
+            val horizontalPaddingWidth = maxYLabelWidth + textPaddingSize * 2
+            val verticalPaddingHeight = maxXLabelHeight + textPaddingSize * 2
+
+            val cellSize = batchUnitsPerGameUnit * gameUnitsPerCell
+            val minCellSize = maxXLabelWidth.coerceAtLeast(maxYLabelHeight) + textPaddingSize
+            if (cellSize < minCellSize) {
+                if (isFirstLayout) {
+                    batchUnitsPerGameUnit = minCellSize / gameUnitsPerCell * 1.001f
+                    isFirstLayout = false
+                } else {
+                    increaseGameWorldStep()
+                    tryToDecreaseStep = false
+                }
+                continue
+            } else {
+                if (gameUnitsPerCell > 1 && tryToDecreaseStep) {
+                    decreaseGameWorldStep()
+                    continue
+                }
+            }
+            continueWork = false
+
+            linesList.clear()
+            for (gameWorldLineX in firstX..lastX step gameUnitsPerCell) {
+                if (!isVerticalWorldLineBeyondPadding(gameWorldLineX, horizontalPaddingWidth)) {
+                    val xInBatchCoordinates = x + (gameWorldLineX - gameWorldBottomX) * batchUnitsPerGameUnit
+                    val xInBatchCoordinatesForText = xInBatchCoordinates - layout.width / 2
+                    linesList.add(
+                        GameWorldGridLine(
+                            xInBatchCoordinates, y + verticalPaddingHeight,
+                            1f, height - verticalPaddingHeight * 2,
+                            xInBatchCoordinatesForText, y + verticalPaddingHeight / 2 + layout.height / 2,
+                            xInBatchCoordinatesForText, y + height - verticalPaddingHeight / 2 + layout.height / 2,
+                            gameWorldLineX.toString()
+                        )
+                    )
+                }
+            }
+            for (gameWorldLineY in firstY..lastY step gameUnitsPerCell) {
+                if (!isHorizontalWorldLineBeyondPadding(gameWorldLineY, verticalPaddingHeight)) {
+                    val yInBatchCoordinates = y + (gameWorldLineY - gameWorldBottomY) * batchUnitsPerGameUnit
+                    val yInBatchCoordinatesForText = yInBatchCoordinates + layout.height / 2
+                    linesList.add(
+                        GameWorldGridLine(
+                            x + horizontalPaddingWidth, yInBatchCoordinates,
+                            width - horizontalPaddingWidth * 2, 1f,
+                            x + horizontalPaddingWidth / 2 - layout.width / 2, yInBatchCoordinatesForText,
+                            x + width - horizontalPaddingWidth / 2 - layout.width / 2, yInBatchCoordinatesForText,
+                            gameWorldLineY.toString()
+                        )
+                    )
+                }
+            }
         }
-
-        val (firstX, lastX) = calculateGameWorldXValues()
-        val (firstY, lastY) = calculateGameWorldYValues()
-        val (maxYLabelWidth, _) = calculateMaxLabelSize(firstY, lastY)
-        val (_, maxXLabelHeight) = calculateMaxLabelSize(firstX, lastX)
-        horizontalPaddingWidth = maxYLabelWidth + textPaddingSize * 2
-        verticalPaddingHeight = maxXLabelHeight + textPaddingSize * 2
-
-        firstWorldY = firstY
-        while (isHorizontalWorldLineBeyondPadding(firstWorldY)) firstWorldY += gameUnitsPerCell
-        lastWorldY = lastY
-        while (isHorizontalWorldLineBeyondPadding(lastWorldY)) lastWorldY -= gameUnitsPerCell
-
-        firstWorldX = firstX
-        while (isVerticalWorldLineBeyondPadding(firstWorldX)) firstWorldX += gameUnitsPerCell
-        lastWorldX = lastX
-        while (isVerticalWorldLineBeyondPadding(lastWorldX)) lastWorldX -= gameUnitsPerCell
+        fire(
+            GameWorldLayoutChangesEvent(
+                batchUnitsPerGameUnit, gameWorldBottomX, gameWorldBottomY,
+                width / batchUnitsPerGameUnit, height / batchUnitsPerGameUnit
+            )
+        )
     }
 
     private fun calculateGameWorldXValues(): List<Int> {
@@ -174,7 +239,15 @@ class GameWorldGrid(skin: Skin) : Widget() {
         return listOf(maxLabelWidth, maxLabelHeight)
     }
 
-    private fun isHorizontalWorldLineBeyondPadding(worldLineValue: Int): Boolean {
+    private fun increaseGameWorldStep() {
+        gameUnitsPerCell *= 10
+    }
+
+    private fun decreaseGameWorldStep() {
+        gameUnitsPerCell /= 10
+    }
+
+    private fun isHorizontalWorldLineBeyondPadding(worldLineValue: Int, verticalPaddingHeight: Float): Boolean {
         val yInBatchCoordinates = y + (worldLineValue - gameWorldBottomY) * batchUnitsPerGameUnit
         layout.setText(bitmapFontCache.font, worldLineValue.toString())
         val textLabelBatchBottom = yInBatchCoordinates - layout.height / 2
@@ -182,7 +255,7 @@ class GameWorldGrid(skin: Skin) : Widget() {
         return textLabelBatchBottom < y + verticalPaddingHeight || textLabelBatchTop > y + height - verticalPaddingHeight
     }
 
-    private fun isVerticalWorldLineBeyondPadding(worldLineValue: Int): Boolean {
+    private fun isVerticalWorldLineBeyondPadding(worldLineValue: Int, horizontalPaddingWidth: Float): Boolean {
         val xInBatchCoordinates = x + (worldLineValue - gameWorldBottomX) * batchUnitsPerGameUnit
         layout.setText(bitmapFontCache.font, worldLineValue.toString())
         val textLabelBatchLeft = xInBatchCoordinates - layout.width / 2
