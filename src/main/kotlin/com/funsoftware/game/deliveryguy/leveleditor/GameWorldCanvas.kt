@@ -1,10 +1,16 @@
 package com.funsoftware.game.deliveryguy.leveleditor
 
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.scenes.scene2d.ui.WidgetGroup
+import com.badlogic.gdx.scenes.scene2d.ui.Stack
 import com.badlogic.gdx.utils.viewport.ScreenViewport
+import com.funsoftware.game.deliveryguy.leveleditor.event.GameWorldParamsChanged
+import org.springframework.context.annotation.Lazy
+import org.springframework.context.event.EventListener
+import org.springframework.stereotype.Component
 
-class GameWorldCanvas : WidgetGroup() {
+@Component
+@Lazy
+class GameWorldCanvas : Stack() {
 
     private var batchUnitsPerGameUnit = 0f
     private var gameWorldLeftBottomX = 0f
@@ -13,17 +19,11 @@ class GameWorldCanvas : WidgetGroup() {
     private var gameWorldHeight = 0f
 
     init {
-        var isProcessed = false
-        addListener {
-            if (it is GameWorldLayoutChangesEvent) {
-                handleGameWorldChanges(it)
-                isProcessed = true
-            }
-            isProcessed
-        }
+        setFillParent(true)
     }
 
-    private fun handleGameWorldChanges(event: GameWorldLayoutChangesEvent) {
+    @EventListener
+    fun gameWorldParamsChanged(event: GameWorldParamsChanged) {
         batchUnitsPerGameUnit = event.batchUnitsPerGameUnit
         gameWorldLeftBottomX = event.gameWorldBottomX
         gameWorldLeftBottomY = event.gameWorldBottomY

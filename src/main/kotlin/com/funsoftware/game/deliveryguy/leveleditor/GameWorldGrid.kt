@@ -14,8 +14,14 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Widget
 import com.badlogic.gdx.scenes.scene2d.utils.DragListener
+import com.funsoftware.game.deliveryguy.leveleditor.event.GameWorldParamsChanged
+import org.springframework.context.ApplicationEventPublisher
+import org.springframework.context.annotation.Lazy
+import org.springframework.stereotype.Component
 
-class GameWorldGrid(skin: Skin) : Widget() {
+@Component
+@Lazy
+class GameWorldGrid(private val eventPublisher: ApplicationEventPublisher, skin: Skin) : Widget() {
 
     private var isFirstLayout = true
     private var gameUnitsPerCell = 1
@@ -206,8 +212,8 @@ class GameWorldGrid(skin: Skin) : Widget() {
                 }
             }
         }
-        fire(
-            GameWorldLayoutChangesEvent(
+        eventPublisher.publishEvent(
+            GameWorldParamsChanged(
                 batchUnitsPerGameUnit, gameWorldBottomX, gameWorldBottomY,
                 width / batchUnitsPerGameUnit, height / batchUnitsPerGameUnit
             )
