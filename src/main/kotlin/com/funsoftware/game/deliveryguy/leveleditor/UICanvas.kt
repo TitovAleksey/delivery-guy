@@ -1,6 +1,7 @@
 package com.funsoftware.game.deliveryguy.leveleditor
 
 import com.badlogic.gdx.scenes.scene2d.Actor
+import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.ui.WidgetGroup
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
@@ -13,6 +14,7 @@ class UICanvas : WidgetGroup(), RespectfulBoundsGroup {
 
     init {
         setFillParent(true)
+        touchable = Touchable.childrenOnly
     }
 
     override fun isBoundaryIntersectedByOtherActor(

@@ -1,9 +1,10 @@
 package com.funsoftware.game.deliveryguy.leveleditor.event
 
-data class GameWorldParamsChanged(
-    val batchUnitsPerGameUnit: Float,
-    val gameWorldBottomX: Float,
-    val gameWorldBottomY: Float,
-    val gameWorldWidth: Float,
-    val gameWorldHeight: Float
-)
+class GameWorldParamsChanged {
+
+    var batchUnitsPerGameUnit = 1f
+    var gameWorldBottomX = 0f
+    var gameWorldBottomY = 0f
+    var gameWorldWidth = 0f
+    var gameWorldHeight = 0f
+}

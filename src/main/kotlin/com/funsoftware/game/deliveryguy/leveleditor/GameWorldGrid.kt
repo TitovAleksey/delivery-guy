@@ -8,12 +8,14 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.BitmapFontCache
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
+import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.InputListener
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Widget
 import com.badlogic.gdx.scenes.scene2d.utils.DragListener
+import com.badlogic.gdx.utils.Pools
 import com.funsoftware.game.deliveryguy.leveleditor.event.GameWorldParamsChanged
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Lazy
@@ -41,7 +43,8 @@ class GameWorldGrid(private val eventPublisher: ApplicationEventPublisher, skin:
     private val worldLinesTexture = createOnePixelTexture()
     private val bitmapFontCache: BitmapFontCache
     private val layout: GlyphLayout = GlyphLayout()
-    private var linesList: MutableList<GameWorldGridLine> = mutableListOf()
+    private val linesList: MutableList<GameWorldGridLine> = mutableListOf()
+    private val eventsPool = Pools.get(GameWorldParamsChanged::class.java)
 
     init {
         setFillParent(true)
@@ -117,6 +120,17 @@ class GameWorldGrid(private val eventPublisher: ApplicationEventPublisher, skin:
                 mousePositionBatchY = y
                 return true
             }
+
+            override fun enter(event: InputEvent?, x: Float, y: Float, pointer: Int, fromActor: Actor?) {
+                stage?.scrollFocus = this@GameWorldGrid
+                stage?.keyboardFocus = this@GameWorldGrid
+            }
+
+            override fun exit(event: InputEvent?, x: Float, y: Float, pointer: Int, toActor: Actor?) {
+                if (toActor == this@GameWorldGrid) return
+                stage?.scrollFocus = null
+                stage?.keyboardFocus = null
+            }
         }
         addListener(mouseListener)
     }
@@ -137,6 +151,10 @@ class GameWorldGrid(private val eventPublisher: ApplicationEventPublisher, skin:
     override fun draw(batch: Batch, parentAlpha: Float) {
         super.draw(batch, parentAlpha)
         drawSizeLineWithLabels(batch)
+    }
+
+    override fun hit(x: Float, y: Float, touchable: Boolean): Actor {
+        return this
     }
 
     private fun drawSizeLineWithLabels(batch: Batch) {
@@ -212,12 +230,7 @@ class GameWorldGrid(private val eventPublisher: ApplicationEventPublisher, skin:
                 }
             }
         }
-        eventPublisher.publishEvent(
-            GameWorldParamsChanged(
-                batchUnitsPerGameUnit, gameWorldBottomX, gameWorldBottomY,
-                width / batchUnitsPerGameUnit, height / batchUnitsPerGameUnit
-            )
-        )
+        publishEvent()
     }
 
     private fun calculateGameWorldXValues(): List<Int> {
@@ -267,5 +280,16 @@ class GameWorldGrid(private val eventPublisher: ApplicationEventPublisher, skin:
         val textLabelBatchLeft = xInBatchCoordinates - layout.width / 2
         val textLabelBatchRight = xInBatchCoordinates + layout.width / 2
         return textLabelBatchLeft < x + horizontalPaddingWidth || textLabelBatchRight > x + width - horizontalPaddingWidth
+    }
+
+    private fun publishEvent() {
+        val event = eventsPool.obtain()
+        event.batchUnitsPerGameUnit = batchUnitsPerGameUnit
+        event.gameWorldBottomX = gameWorldBottomX
+        event.gameWorldBottomY = gameWorldBottomY
+        event.gameWorldWidth = width / batchUnitsPerGameUnit
+        event.gameWorldHeight = height / batchUnitsPerGameUnit
+        eventPublisher.publishEvent(event)
+        eventsPool.free(event)
     }
 }

@@ -5,6 +5,7 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
+import com.badlogic.gdx.scenes.scene2d.ui.Stack
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.builder.SpringApplicationBuilder
@@ -33,11 +34,18 @@ class Application {
 
     @Bean
     @Lazy
-    fun uiStage(uiCanvas: UICanvas, gameWorldGrid: GameWorldGrid): Stage {
+    fun uiStage(uiCanvas: UICanvas, gameWorldGrid: GameWorldGrid, skin: Skin): Stage {
         val stage = Stage(ScreenViewport())
-        stage.scrollFocus = gameWorldGrid
-        stage.keyboardFocus = gameWorldGrid
-        stage.addActor(gameWorldGrid)
+        val stack = Stack()
+
+        stack.setFillParent(true)
+        stack.add(gameWorldGrid)
+        stack.add(uiCanvas)
+        stage.root = stack
+
+        uiCanvas.addActor(RespectfulBoundsWindow("window 1", skin))
+        uiCanvas.addActor(RespectfulBoundsWindow("window 2", skin))
+
         return stage
     }
 
@@ -45,7 +53,7 @@ class Application {
     @Lazy
     fun gameWorldStage(gameWorldCanvas: GameWorldCanvas, testWidget: TestWidget): Stage {
         val stage = Stage(ScreenViewport())
-        stage.addActor(gameWorldCanvas)
+        stage.root = gameWorldCanvas
         gameWorldCanvas.addActor(testWidget)
         return stage
     }
