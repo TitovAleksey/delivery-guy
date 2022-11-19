@@ -205,6 +205,11 @@ class GameWorldGrid(private val eventPublisher: ApplicationEventPublisher, skin:
             val divisor = BigDecimal(100)
             for (gameWorldLineX in firstX..lastX step gameUnitsPerCell) {
                 if (!isVerticalWorldLineBeyondPadding(gameWorldLineX, horizontalPaddingWidth)) {
+                    val labelText = BigDecimal(gameWorldLineX).divide(
+                        divisor,
+                        MathContext(2, RoundingMode.HALF_EVEN)
+                    ).toString()
+                    layout.setText(bitmapFontCache.font, labelText)
                     val xInBatchCoordinates = x + (gameWorldLineX - gameWorldBottomX) * batchUnitsPerGameUnit
                     val xInBatchCoordinatesForText = xInBatchCoordinates - layout.width / 2
                     linesList.add(
@@ -213,14 +218,18 @@ class GameWorldGrid(private val eventPublisher: ApplicationEventPublisher, skin:
                             1f, height - verticalPaddingHeight * 2,
                             xInBatchCoordinatesForText, y + verticalPaddingHeight / 2 + layout.height / 2,
                             xInBatchCoordinatesForText, y + height - verticalPaddingHeight / 2 + layout.height / 2,
-                            BigDecimal(gameWorldLineX).divide(divisor, MathContext(2, RoundingMode.HALF_EVEN))
-                                .toString()
+                            labelText
                         )
                     )
                 }
             }
             for (gameWorldLineY in firstY..lastY step gameUnitsPerCell) {
                 if (!isHorizontalWorldLineBeyondPadding(gameWorldLineY, verticalPaddingHeight)) {
+                    val labelText = BigDecimal(gameWorldLineY).divide(
+                        divisor,
+                        MathContext(2, RoundingMode.HALF_EVEN)
+                    ).toString()
+                    layout.setText(bitmapFontCache.font, labelText)
                     val yInBatchCoordinates = y + (gameWorldLineY - gameWorldBottomY) * batchUnitsPerGameUnit
                     val yInBatchCoordinatesForText = yInBatchCoordinates + layout.height / 2
                     linesList.add(
@@ -229,8 +238,7 @@ class GameWorldGrid(private val eventPublisher: ApplicationEventPublisher, skin:
                             width - horizontalPaddingWidth * 2, 1f,
                             x + horizontalPaddingWidth / 2 - layout.width / 2, yInBatchCoordinatesForText,
                             x + width - horizontalPaddingWidth / 2 - layout.width / 2, yInBatchCoordinatesForText,
-                            BigDecimal(gameWorldLineY).divide(divisor, MathContext(2, RoundingMode.HALF_EVEN))
-                                .toString()
+                            labelText
                         )
                     )
                 }
@@ -262,8 +270,8 @@ class GameWorldGrid(private val eventPublisher: ApplicationEventPublisher, skin:
                 bitmapFontCache.font,
                 BigDecimal(libelValue).divide(divisor, MathContext(2, RoundingMode.HALF_EVEN)).toString()
             )
-            maxLabelWidth = if (layout.width > maxLabelWidth) layout.width else maxLabelWidth
-            maxLabelHeight = if (layout.height > maxLabelHeight) layout.height else maxLabelHeight
+            maxLabelWidth = maxLabelWidth.coerceAtLeast(layout.width)
+            maxLabelHeight = maxLabelHeight.coerceAtLeast(layout.height)
         }
         return listOf(maxLabelWidth, maxLabelHeight)
     }
