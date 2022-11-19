@@ -1,15 +1,12 @@
-package com.funsoftware.game.deliveryguy.leveleditor
+package com.funsoftware.game.deliveryguy.leveleditor.component
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.scenes.scene2d.ui.Stack
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import com.funsoftware.game.deliveryguy.leveleditor.event.GameWorldParamsChanged
-import org.springframework.context.annotation.Lazy
 import org.springframework.context.event.EventListener
-import org.springframework.stereotype.Component
 
-@Component
-@Lazy
+@LazyComponent
 class GameWorldCanvas : Stack() {
 
     private var batchUnitsPerGameUnit = 0f

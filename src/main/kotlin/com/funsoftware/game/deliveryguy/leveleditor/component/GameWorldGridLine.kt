@@ -1,4 +1,4 @@
-package com.funsoftware.game.deliveryguy.leveleditor
+package com.funsoftware.game.deliveryguy.leveleditor.component
 
 data class GameWorldGridLine(
     val lineX: Float, val lineY: Float,

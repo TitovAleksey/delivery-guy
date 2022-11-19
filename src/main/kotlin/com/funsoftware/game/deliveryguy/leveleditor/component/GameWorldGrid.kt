@@ -1,4 +1,4 @@
-package com.funsoftware.game.deliveryguy.leveleditor
+package com.funsoftware.game.deliveryguy.leveleditor.component
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
@@ -18,14 +18,11 @@ import com.badlogic.gdx.scenes.scene2d.utils.DragListener
 import com.badlogic.gdx.utils.Pools
 import com.funsoftware.game.deliveryguy.leveleditor.event.GameWorldParamsChanged
 import org.springframework.context.ApplicationEventPublisher
-import org.springframework.context.annotation.Lazy
-import org.springframework.stereotype.Component
 import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
 
-@Component
-@Lazy
+@LazyComponent
 class GameWorldGrid(private val eventPublisher: ApplicationEventPublisher, skin: Skin) : Widget() {
 
     private var isFirstLayout = true

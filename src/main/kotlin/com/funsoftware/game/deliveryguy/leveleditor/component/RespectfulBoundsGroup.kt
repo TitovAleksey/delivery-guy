@@ -1,4 +1,4 @@
-package com.funsoftware.game.deliveryguy.leveleditor
+package com.funsoftware.game.deliveryguy.leveleditor.component
 
 import com.badlogic.gdx.scenes.scene2d.Actor
 

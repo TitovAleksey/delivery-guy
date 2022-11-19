@@ -1,4 +1,4 @@
-package com.funsoftware.game.deliveryguy.leveleditor
+package com.funsoftware.game.deliveryguy.leveleditor.component
 
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Pixmap
@@ -6,11 +6,8 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.scenes.scene2d.ui.Widget
-import org.springframework.context.annotation.Lazy
-import org.springframework.stereotype.Component
 
-@Component
-@Lazy
+@LazyComponent
 class TestWidget : Widget() {
 
     private val sprite: Sprite

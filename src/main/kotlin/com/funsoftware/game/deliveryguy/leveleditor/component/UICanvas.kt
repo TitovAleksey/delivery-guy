@@ -1,13 +1,10 @@
-package com.funsoftware.game.deliveryguy.leveleditor
+package com.funsoftware.game.deliveryguy.leveleditor.component
 
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.ui.WidgetGroup
-import org.springframework.context.annotation.Lazy
-import org.springframework.stereotype.Component
 
-@Component
-@Lazy
+@LazyComponent
 class UICanvas : WidgetGroup(), RespectfulBoundsGroup {
 
     private val activeWidgets = ArrayList<Widget>()
