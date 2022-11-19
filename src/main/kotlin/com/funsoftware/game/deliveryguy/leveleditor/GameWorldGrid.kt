@@ -20,6 +20,9 @@ import com.funsoftware.game.deliveryguy.leveleditor.event.GameWorldParamsChanged
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
+import java.math.BigDecimal
+import java.math.MathContext
+import java.math.RoundingMode
 
 @Component
 @Lazy
@@ -199,6 +202,7 @@ class GameWorldGrid(private val eventPublisher: ApplicationEventPublisher, skin:
             continueWork = false
 
             linesList.clear()
+            val divisor = BigDecimal(100)
             for (gameWorldLineX in firstX..lastX step gameUnitsPerCell) {
                 if (!isVerticalWorldLineBeyondPadding(gameWorldLineX, horizontalPaddingWidth)) {
                     val xInBatchCoordinates = x + (gameWorldLineX - gameWorldBottomX) * batchUnitsPerGameUnit
@@ -209,7 +213,8 @@ class GameWorldGrid(private val eventPublisher: ApplicationEventPublisher, skin:
                             1f, height - verticalPaddingHeight * 2,
                             xInBatchCoordinatesForText, y + verticalPaddingHeight / 2 + layout.height / 2,
                             xInBatchCoordinatesForText, y + height - verticalPaddingHeight / 2 + layout.height / 2,
-                            gameWorldLineX.toString()
+                            BigDecimal(gameWorldLineX).divide(divisor, MathContext(2, RoundingMode.HALF_EVEN))
+                                .toString()
                         )
                     )
                 }
@@ -224,7 +229,8 @@ class GameWorldGrid(private val eventPublisher: ApplicationEventPublisher, skin:
                             width - horizontalPaddingWidth * 2, 1f,
                             x + horizontalPaddingWidth / 2 - layout.width / 2, yInBatchCoordinatesForText,
                             x + width - horizontalPaddingWidth / 2 - layout.width / 2, yInBatchCoordinatesForText,
-                            gameWorldLineY.toString()
+                            BigDecimal(gameWorldLineY).divide(divisor, MathContext(2, RoundingMode.HALF_EVEN))
+                                .toString()
                         )
                     )
                 }
@@ -250,8 +256,12 @@ class GameWorldGrid(private val eventPublisher: ApplicationEventPublisher, skin:
     private fun calculateMaxLabelSize(firstLabelValue: Int, lastLabelValue: Int): List<Float> {
         var maxLabelWidth = 0f
         var maxLabelHeight = 0f
+        val divisor = BigDecimal(100)
         for (libelValue in firstLabelValue..lastLabelValue step gameUnitsPerCell) {
-            layout.setText(bitmapFontCache.font, libelValue.toString())
+            layout.setText(
+                bitmapFontCache.font,
+                BigDecimal(libelValue).divide(divisor, MathContext(2, RoundingMode.HALF_EVEN)).toString()
+            )
             maxLabelWidth = if (layout.width > maxLabelWidth) layout.width else maxLabelWidth
             maxLabelHeight = if (layout.height > maxLabelHeight) layout.height else maxLabelHeight
         }
@@ -284,11 +294,11 @@ class GameWorldGrid(private val eventPublisher: ApplicationEventPublisher, skin:
 
     private fun publishEvent() {
         val event = eventsPool.obtain()
-        event.batchUnitsPerGameUnit = batchUnitsPerGameUnit
-        event.gameWorldBottomX = gameWorldBottomX
-        event.gameWorldBottomY = gameWorldBottomY
-        event.gameWorldWidth = width / batchUnitsPerGameUnit
-        event.gameWorldHeight = height / batchUnitsPerGameUnit
+        event.batchUnitsPerGameUnit = batchUnitsPerGameUnit * 100
+        event.gameWorldBottomX = gameWorldBottomX / 100
+        event.gameWorldBottomY = gameWorldBottomY / 100
+        event.gameWorldWidth = width / batchUnitsPerGameUnit / 100
+        event.gameWorldHeight = height / batchUnitsPerGameUnit / 100
         eventPublisher.publishEvent(event)
         eventsPool.free(event)
     }
