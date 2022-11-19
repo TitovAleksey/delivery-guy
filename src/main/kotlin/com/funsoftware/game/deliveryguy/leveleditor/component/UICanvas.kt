@@ -5,12 +5,13 @@ import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.ui.WidgetGroup
 
 @LazyComponent
-class UICanvas : WidgetGroup(), RespectfulBoundsGroup {
+class UICanvas(resourcesWindow: ResourcesWindow) : WidgetGroup(), RespectfulBoundsGroup {
 
     private val activeWidgets = ArrayList<Widget>()
 
     init {
         setFillParent(true)
+        addActor(resourcesWindow)
         touchable = Touchable.childrenOnly
     }
 

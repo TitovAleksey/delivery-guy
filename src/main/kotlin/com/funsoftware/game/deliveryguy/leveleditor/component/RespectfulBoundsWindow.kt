@@ -4,7 +4,7 @@ import com.badlogic.gdx.scenes.scene2d.actions.MoveToAction
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Window
 
-class RespectfulBoundsWindow(title: String, skin: Skin) : Window(title, skin) {
+open class RespectfulBoundsWindow(title: String, skin: Skin) : Window(title, skin) {
 
     private var processDragStop = false
     private var xBeforeDrag = 0f
@@ -25,6 +25,7 @@ class RespectfulBoundsWindow(title: String, skin: Skin) : Window(title, skin) {
         super.layout()
         if (processDragStop) {
             checkIfWindowOverlapsOtherActors()
+            processDragStop = false
         }
         if (!isDragging) {
             xBeforeDrag = x

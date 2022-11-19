@@ -1,27 +1,25 @@
-package com.funsoftware.game.deliveryguy.leveleditor
+package com.funsoftware.game.deliveryguy.leveleditor.service
 
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Service
 import java.io.File
 import java.nio.file.*
 import java.nio.file.StandardWatchEventKinds.*
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.concurrent.ConcurrentHashMap
+import javax.annotation.PostConstruct
 import kotlin.io.path.name
 
-
-//@Service
-class ImagesService(private val projectHome: String) {
+@Service
+class ImagesService(@Value("\${project.home:/home/aleksey}") private val projectHome: String) {
 
     private val images = ConcurrentHashMap<String, Path>()
 
-    fun getAvailableImageNames(): List<String> {
-        return images.keys().toList().sorted()
+    fun getImages(): Map<String, Path> {
+        return images.toMap()
     }
 
-    fun getFileAbsolutePath(filename: String): Path? {
-        return images[filename]
-    }
-
-    //@PostConstruct
+    @PostConstruct
     fun addAlreadyExistedImagesAndStartWatcher() {
         val directory = File("$projectHome/images")
         if (!directory.exists()) {
@@ -54,10 +52,9 @@ class ImagesService(private val projectHome: String) {
                         val relativePath = (event as WatchEvent<Path>).context()
                         if (relativePath.name.endsWith(".png")) {
                             val fullPath = path.resolve(relativePath)
-                            if (event.kind() == ENTRY_CREATE) {
-                                images[relativePath.name] = fullPath
-                            } else {
-                                images.remove(relativePath.name)
+                            when (event.kind()) {
+                                ENTRY_CREATE, ENTRY_MODIFY -> images[relativePath.name] = fullPath
+                                ENTRY_DELETE -> images.remove(relativePath.name)
                             }
                         }
                     }

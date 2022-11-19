@@ -7,7 +7,10 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Stack
 import com.badlogic.gdx.utils.viewport.ScreenViewport
-import com.funsoftware.game.deliveryguy.leveleditor.component.*
+import com.funsoftware.game.deliveryguy.leveleditor.component.GameWorldCanvas
+import com.funsoftware.game.deliveryguy.leveleditor.component.GameWorldGrid
+import com.funsoftware.game.deliveryguy.leveleditor.component.TestWidget
+import com.funsoftware.game.deliveryguy.leveleditor.component.UICanvas
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.context.annotation.Bean
@@ -43,9 +46,6 @@ class Application {
         stack.add(gameWorldGrid)
         stack.add(uiCanvas)
         stage.root = stack
-
-        uiCanvas.addActor(RespectfulBoundsWindow("window 1", skin))
-        uiCanvas.addActor(RespectfulBoundsWindow("window 2", skin))
 
         return stage
     }
