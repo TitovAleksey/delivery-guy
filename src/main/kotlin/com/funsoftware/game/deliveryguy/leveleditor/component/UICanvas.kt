@@ -3,6 +3,7 @@ package com.funsoftware.game.deliveryguy.leveleditor.component
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.ui.WidgetGroup
+import com.funsoftware.game.deliveryguy.leveleditor.component.resources.ResourcesWindow
 
 @LazyComponent
 class UICanvas(resourcesWindow: ResourcesWindow) : WidgetGroup(), RespectfulBoundsGroup {

@@ -34,7 +34,7 @@ class ImagesService(@Value("\${project.home:/home/aleksey}") private val project
         Files.walkFileTree(path, object : SimpleFileVisitor<Path>() {
             override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
                 if (file.name.endsWith(".png"))
-                    images[file.name] = path.resolve(file)
+                    images[file.name] = file
                 return FileVisitResult.CONTINUE
             }
         })
@@ -49,12 +49,11 @@ class ImagesService(@Value("\${project.home:/home/aleksey}") private val project
                 key.pollEvents().stream()
                     .filter { event -> event.kind() != OVERFLOW }
                     .forEach { event ->
-                        val relativePath = (event as WatchEvent<Path>).context()
-                        if (relativePath.name.endsWith(".png")) {
-                            val fullPath = path.resolve(relativePath)
+                        val path = (event as WatchEvent<Path>).context()
+                        if (path.name.endsWith(".png")) {
                             when (event.kind()) {
-                                ENTRY_CREATE, ENTRY_MODIFY -> images[relativePath.name] = fullPath
-                                ENTRY_DELETE -> images.remove(relativePath.name)
+                                ENTRY_CREATE, ENTRY_MODIFY -> images[path.name] = path
+                                ENTRY_DELETE -> images.remove(path.name)
                             }
                         }
                     }
