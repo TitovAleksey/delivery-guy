@@ -16,7 +16,9 @@ import kotlin.io.path.absolutePathString
 class ResourcesWindow(private val imagesService: ImagesService, skin: Skin) :
     RespectfulBoundsWindow("Resources", skin) {
 
-    private var images: Map<String, Path> = mapOf()
+    private var images = mapOf<String, Path>()
+    private var sortedImages = listOf<ResourceImageIcon>()
+    private var imagesPerRow = 1
     private val contentTable = Table()
 
     init {
@@ -24,19 +26,37 @@ class ResourcesWindow(private val imagesService: ImagesService, skin: Skin) :
         contentTable.debug = true
         val scrollPane = ScrollPane(contentTable, skin)
         scrollPane.fadeScrollBars = false
-        add(scrollPane).fill().expand()
+        add(scrollPane).grow().left().top()
     }
 
     override fun validate() {
         super.validate()
+        var isValid = true
         val actualImages = imagesService.getImages()
         if (actualImages != images) {
             images = actualImages
-            images.keys.forEach {
-                val imageIcon = ResourceImageIcon(loadTextureFromPath(images[it]!!))
-                contentTable.add(imageIcon).fill().expand()
+            sortedImages = images.values.map { ResourceImageIcon(loadTextureFromPath(it)) }
+            isValid = false
+        }
+        if (sortedImages.isNotEmpty()) {
+            if (sortedImages[0].minWidth * (imagesPerRow + 1) <= width) {
+                imagesPerRow++
+                isValid = false
+            } else if (imagesPerRow > 1 && sortedImages[0].minWidth * imagesPerRow > width) {
+                imagesPerRow--
+                isValid = false
             }
-            invalidate()
+        }
+        if (!isValid) {
+            contentTable.clear()
+            var counter = 1
+            sortedImages.forEach {
+                contentTable.add(it).grow().top().left()
+                if (++counter > imagesPerRow) {
+                    contentTable.row()
+                    counter = 1
+                }
+            }
         }
     }
 

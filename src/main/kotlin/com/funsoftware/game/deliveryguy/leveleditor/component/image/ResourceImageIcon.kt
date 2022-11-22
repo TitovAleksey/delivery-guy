@@ -7,35 +7,31 @@ import com.badlogic.gdx.scenes.scene2d.ui.Widget
 
 class ResourceImageIcon(private val texture: Texture) : Widget() {
 
-    private val prefWidth: Float
-    private val prefHeight: Float
-    private val maxWidth: Float
-    private val maxHeight: Float
+    private val prefSize: Float
+    private val maxSize: Float
 
     init {
         val batchUnitsPerCm = Gdx.graphics.density * 160f / 2.54f
         val prefSizeInCm = 2
-        prefWidth = batchUnitsPerCm * prefSizeInCm
-        prefHeight = prefWidth
+        prefSize = batchUnitsPerCm * prefSizeInCm
         val maxSizeInCm = 4
-        maxWidth = batchUnitsPerCm * maxSizeInCm
-        maxHeight = maxWidth
+        maxSize = batchUnitsPerCm * maxSizeInCm
     }
 
     override fun getPrefWidth(): Float {
-        return prefWidth
+        return prefSize
     }
 
     override fun getPrefHeight(): Float {
-        return prefHeight
+        return prefSize
     }
 
     override fun getMaxWidth(): Float {
-        return maxWidth
+        return maxSize
     }
 
     override fun getMaxHeight(): Float {
-        return maxHeight
+        return maxSize
     }
 
     override fun draw(batch: Batch, parentAlpha: Float) {
