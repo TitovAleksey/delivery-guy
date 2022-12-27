@@ -43,7 +43,7 @@ class ImagesService(@Value("\${project.home:/home/aleksey}") private val project
     private fun startFilesWatcher(path: Path) {
         val watcher = FileSystems.getDefault().newWatchService()
         path.register(watcher, arrayOf(ENTRY_CREATE, ENTRY_DELETE))
-        Thread {
+        val thread = Thread {
             while (!Thread.currentThread().isInterrupted) {
                 val key = watcher.take()
                 key.pollEvents().stream()
@@ -59,6 +59,8 @@ class ImagesService(@Value("\${project.home:/home/aleksey}") private val project
                     }
                 key.reset()
             }
-        }.start()
+        }
+        thread.isDaemon = true
+        thread.start()
     }
 }
