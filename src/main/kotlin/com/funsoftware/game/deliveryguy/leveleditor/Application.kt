@@ -6,6 +6,7 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Stack
+import com.badlogic.gdx.scenes.scene2d.utils.DragAndDrop
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import com.funsoftware.game.deliveryguy.leveleditor.component.GameWorldCanvas
 import com.funsoftware.game.deliveryguy.leveleditor.component.GameWorldGrid
@@ -38,15 +39,9 @@ class Application {
 
     @Bean
     @Lazy
-    fun uiStage(uiCanvas: UICanvas, gameWorldGrid: GameWorldGrid, skin: Skin): Stage {
+    fun uiStage(uiCanvas: UICanvas): Stage {
         val stage = Stage(ScreenViewport())
-        val stack = Stack()
-
-        stack.setFillParent(true)
-        stack.add(gameWorldGrid)
-        stack.add(uiCanvas)
-        stage.root = stack
-
+        stage.root = uiCanvas
         return stage
     }
 
@@ -57,6 +52,12 @@ class Application {
         stage.root = gameWorldCanvas
         gameWorldCanvas.addActor(testWidget)
         return stage
+    }
+
+    @Bean
+    @Lazy
+    fun dragAndDrop(): DragAndDrop {
+        return DragAndDrop()
     }
 }
 

@@ -26,6 +26,7 @@ class ResizableItemsTable : WidgetGroup() {
         } else {
             val actors = children.begin()
             var cellSize = calculateCellSize(actors)
+            preferableWidth = cellSize
             val actorsInRow = (width / cellSize).toInt().coerceAtLeast(1).coerceAtMost(children.size)
             val remainder = width - (cellSize * actorsInRow)
             if (remainder > 0) {
@@ -49,7 +50,6 @@ class ResizableItemsTable : WidgetGroup() {
                 }
             }
             children.end()
-            preferableWidth = cellSize
             preferableHeight = verticalOffset
             invalidateHierarchy()
         }

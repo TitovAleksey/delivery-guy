@@ -14,23 +14,23 @@ import kotlin.io.path.name
 class ImagesService(@Value("\${project.home:/home/aleksey}") private val projectHome: String) {
 
     private val images = ConcurrentHashMap<String, Path>()
+    private val path: Path
 
-    fun getImages(): Map<String, Path> {
-        return images.toMap()
-    }
-
-    @PostConstruct
-    fun addAlreadyExistedImagesAndStartWatcher() {
+    init {
         val directory = File("$projectHome/images")
         if (!directory.exists()) {
             directory.mkdirs()
         }
-        val path = directory.toPath()
-        addImagesToMap(path)
-        startFilesWatcher(path)
+        path = directory.toPath()
     }
 
-    private fun addImagesToMap(path: Path) {
+    @PostConstruct
+    fun addAlreadyExistedImagesAndStartWatcher() {
+        addImagesToMap()
+        startFilesWatcher()
+    }
+
+    private fun addImagesToMap() {
         Files.walkFileTree(path, object : SimpleFileVisitor<Path>() {
             override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
                 if (file.name.endsWith(".png"))
@@ -40,7 +40,7 @@ class ImagesService(@Value("\${project.home:/home/aleksey}") private val project
         })
     }
 
-    private fun startFilesWatcher(path: Path) {
+    private fun startFilesWatcher() {
         val watcher = FileSystems.getDefault().newWatchService()
         path.register(watcher, arrayOf(ENTRY_CREATE, ENTRY_DELETE))
         val thread = Thread {
@@ -49,11 +49,11 @@ class ImagesService(@Value("\${project.home:/home/aleksey}") private val project
                 key.pollEvents().stream()
                     .filter { event -> event.kind() != OVERFLOW }
                     .forEach { event ->
-                        val path = (event as WatchEvent<Path>).context()
-                        if (path.name.endsWith(".png")) {
+                        val pathEvent = (event as WatchEvent<Path>).context()
+                        if (pathEvent.name.endsWith(".png")) {
                             when (event.kind()) {
-                                ENTRY_CREATE, ENTRY_MODIFY -> images[path.name] = path
-                                ENTRY_DELETE -> images.remove(path.name)
+                                ENTRY_CREATE -> images[pathEvent.name] = path.resolve(pathEvent)
+                                ENTRY_DELETE -> images.remove(pathEvent.name)
                             }
                         }
                     }
@@ -62,5 +62,9 @@ class ImagesService(@Value("\${project.home:/home/aleksey}") private val project
         }
         thread.isDaemon = true
         thread.start()
+    }
+
+    fun getImages(): Map<String, Path> {
+        return images.toMap()
     }
 }
